@@ -83,9 +83,8 @@ def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if "user_id" not in session:
-            flash("ログインしてください")
-            return redirect(url_for("login"))
-        return func(*args, **kwargs)
+    flash("ログインしてください")
+    return redirect(url_for("login_route")) # 関数名に合わせる
     return wrapper
 
 # ----------------------
