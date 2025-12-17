@@ -3,6 +3,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import psycopg2
 
+app = Flask(__name__)
+
 def get_connection():
     database_url = os.environ.get("DATABASE_URL")
     return psycopg2.connect(database_url)
