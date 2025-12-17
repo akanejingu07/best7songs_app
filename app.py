@@ -27,6 +27,7 @@ def init_db():
         conn = get_connection()
         cur = conn.cursor()
 
+        # users テーブル作成（なければ）
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -35,6 +36,7 @@ def init_db():
         );
         """)
 
+        # posts テーブル作成（なければ）
         cur.execute("""
         CREATE TABLE IF NOT EXISTS posts (
             id SERIAL PRIMARY KEY,
@@ -44,6 +46,7 @@ def init_db():
         );
         """)
 
+        # songs テーブル作成（なければ）
         cur.execute("""
         CREATE TABLE IF NOT EXISTS songs (
             id SERIAL PRIMARY KEY,
@@ -54,10 +57,21 @@ def init_db():
         );
         """)
 
+        # 既存の users テーブルに nickname や password があれば変更
+        try:
+            cur.execute("ALTER TABLE users RENAME COLUMN nickname TO username;")
+        except Exception:
+            pass  # 既に username なら無視
+
+        try:
+            cur.execute("ALTER TABLE users RENAME COLUMN password TO password_hash;")
+        except Exception:
+            pass  # 既に password_hash なら無視
+
         conn.commit()
         cur.close()
         conn.close()
-        print("DB初期化完了")
+        print("DB初期化完了（カラム修正済み）")
     except RuntimeError:
         print("DATABASE_URL が設定されていないため、DB初期化はスキップしました")
 
@@ -157,13 +171,7 @@ def logout():
     return redirect(url_for("index"))
 
 # ----------------------
-# Render対応のポート設定
-# ----------------------
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-
-# ----------------------
-# テーブルカラム確認用（デバッグ用・後で削除推奨）
+# デバッグ用: users テーブルのカラム確認
 # ----------------------
 @app.route("/check_users_columns")
 def check_users_columns():
@@ -182,4 +190,9 @@ def check_users_columns():
     except Exception as e:
         return f"エラー発生: {e}"
 
+# ----------------------
+# Render対応のポート設定
+# ----------------------
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
