@@ -16,13 +16,10 @@
         <h1><a href="{{ url_for('index') }}">My Best 7 Songs</a></h1>
         <nav  style="margin-left: 12px;">
             {% if 'username' in session %}
-                <span>{{ session['username'] }} さん</span>
-                <a href="{{ url_for('new') }}">投稿</a>
-                <a href="{{ url_for('logout') }}">ログアウト</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">ログイン</a>
-                <a href="{{ url_for('register') }}">登録</a>
-            {% endif %}
+    <span>{{ session['username'] }} さん</span>
+    <a href="{{ url_for('new') }}">投稿</a>
+    <a href="{{ url_for('logout_route') }}">ログアウト</a> {% else %}
+    <a href="{{ url_for('login_route') }}">ログイン</a>   <a href="{{ url_for('register_route') }}">登録</a> {% endif %}
         </nav>
         <hr>
     </header>
