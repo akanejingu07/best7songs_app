@@ -133,34 +133,52 @@ def detail(id):
 @login_required
 def new():
     if request.method == "POST":
-        username = request.form.get("username")
-        songs = []
-        for i in range(1, 8):
-            title = request.form.get(f"song_title_{i}")
-            artist = request.form.get(f"artist_{i}")
-            url = request.form.get(f"url_{i}")
-            if title and artist:
-                songs.append({"title": title, "artist": artist, "url": url})
+        try:
+            username = request.form.get("username")
+            user_id = session.get("user_id") # session["user_id"] より安全
+            
+            if not user_id:
+                flash("セッションが切れました。再度ログインしてください")
+                return redirect(url_for("login_route"))
 
-        conn = get_connection()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO posts (username, user_id) VALUES (%s, %s) RETURNING id", (username, session["user_id"]))
-        post_id = cur.fetchone()[0]
+            songs = []
+            for i in range(1, 8):
+                title = request.form.get(f"song_title_{i}")
+                artist = request.form.get(f"artist_{i}")
+                url = request.form.get(f"url_{i}")
+                if title and artist:
+                    songs.append({"title": title, "artist": artist, "url": url})
 
-        for song in songs:
-            cur.execute("INSERT INTO songs (post_id, title, artist, url) VALUES (%s, %s, %s, %s)",
-                        (post_id, song["title"], song["artist"], song["url"]))
+            conn = get_connection()
+            cur = conn.cursor()
+            
+            # 投稿を挿入
+            cur.execute(
+                "INSERT INTO posts (username, user_id) VALUES (%s, %s) RETURNING id", 
+                (username, user_id)
+            )
+            post_id = cur.fetchone()[0]
 
-        conn.commit()
-        cur.close()
-        conn.close()
+            # 曲を挿入
+            for song in songs:
+                cur.execute(
+                    "INSERT INTO songs (post_id, title, artist, url) VALUES (%s, %s, %s, %s)",
+                    (post_id, song["title"], song["artist"], song["url"])
+                )
 
-        flash("投稿が完了しました")
-        return redirect(url_for("detail", id=post_id))
+            conn.commit()
+            cur.close()
+            conn.close()
 
-    # ↓ここが「if」の縦ラインと同じ位置にあることを確認してください
+            flash("投稿が完了しました")
+            return redirect(url_for("detail", id=post_id))
+
+        except Exception as e:
+            # エラーが起きたら画面に表示する（デバッグ用）
+            flash(f"エラーが発生しました: {e}")
+            return redirect(url_for("new"))
+
     return render_template("new.html")
-
 # ----------------------
 # 編集
 # ----------------------
