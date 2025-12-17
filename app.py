@@ -8,7 +8,43 @@ import psycopg2
 # アプリ設定
 # ----------------------
 app = Flask(__name__)
+init_db()
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+def init_db():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL
+    );
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS posts (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL,
+        user_id INTEGER REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS songs (
+        id SERIAL PRIMARY KEY,
+        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        artist TEXT NOT NULL,
+        url TEXT
+    );
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 # ----------------------
 # DB接続
