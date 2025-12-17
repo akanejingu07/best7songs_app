@@ -1,21 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 import psycopg2
-from functools import wraps
-
-app = Flask(__name__)
-app.secret_key = "YOUR_SECRET_KEY"  # 変更してください
-
-DB_PARAMS = {
-    "host": "localhost",
-    "dbname": "best7songs_db",
-    "user": "postgres",
-    "password": ""
-}
 
 def get_connection():
-    return psycopg2.connect(**DB_PARAMS)
-
+    database_url = os.environ.get("DATABASE_URL")
+    return psycopg2.connect(database_url)
+    
 # ----------------------
 # デコレーター
 # ----------------------
