@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>My Best 7 Songs</title>
+    <!-- Noto Sans JP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+<body>
+    <header>
+        <h1><a href="{{ url_for('index') }}">My Best 7 Songs</a></h1>
+        <nav  style="margin-left: 12px;">
+            {% if 'username' in session %}
+                <span>{{ session['username'] }} さん</span>
+                <a href="{{ url_for('new') }}">投稿</a>
+                <a href="{{ url_for('logout') }}">ログアウト</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">ログイン</a>
+                <a href="{{ url_for('register') }}">登録</a>
+            {% endif %}
+        </nav>
+        <hr>
+    </header>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class="flash-messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  
+    {% block content %}{% endblock %}
+</body>
+</html>

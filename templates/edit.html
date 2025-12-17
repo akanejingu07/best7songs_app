@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>投稿編集</h2>
+<form method="post">
+    {% for i in range(0,7) %}
+        <fieldset>
+            <legend>{{ i+1 }}</legend>
+            <label>タイトル <input type="text" name="song_title_{{ i+1 }}" value="{{ songs[i].title }}"></label><br>
+            <label>アーティスト <input type="text" name="artist_{{ i+1 }}" value="{{ songs[i].artist }}"></label><br>
+            <label>URL <input type="text" name="url_{{ i+1 }}" value="{{ songs[i].url }}"></label><br>
+        </fieldset>
+    {% endfor %}
+    <button type="submit">更新</button>
+</form>
+{% endblock %}

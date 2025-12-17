@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 style="margin-left: 40px;">ログイン</h2>
+<form method="post">
+  <label>ユーザー名:
+    <input type="text" name="username" required>
+  </label><br>
+  <label>パスワード:
+    <input type="password" name="password" required>
+  </label>
+  <div class="actions">
+  <button type="submit" class="action-btn submit">ログイン</button>
+  </div>
+</form>
+<p style="font-size: 12px; margin: 40px;">アカウントがない場合は <a href="{{ url_for('register') }}">こちら</a></p>
+{% endblock %}

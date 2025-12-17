@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 style="margin: 40px;">投稿一覧</h2>
+<ul>
+    {% for post in posts %}
+        <li  style="margin: 20px; margin-bottom: 12px;">
+            <a href="{{ url_for('detail', id=post.id) }}">{{ post.username }} さんの投稿</a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

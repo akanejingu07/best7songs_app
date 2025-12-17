@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 style="margin-left: 40px;">新規投稿</h2>
+<form method="POST">
+    投稿者名: <input type="text" name="username" required><br><br>
+    {% for i in range(1,8) %}
+        <h4> {{ i }}</h4>
+        曲名 <input type="text" name="song_title_{{ i }}" required><br>
+        アーティスト <input type="text" name="artist_{{ i }}" required><br>
+        URL <input type="text" name="url_{{ i }}"><br><br>
+    {% endfor %}
+    <div class="submit-wrapper">
+    <button type="submit" class="action-btn submit">投稿</button>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,263 @@
+/* 全体フォント設定 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  color: #333;
+  margin: 0;
+  background: #f5f6f8;
+}
+
+
+/* ===== ヘッダー ===== */
+header {
+  background: #ffffff80; /* 半透明 */
+  backdrop-filter: blur(5px);
+  padding: 10px 15px;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+}
+
+header h1 {
+  margin: 20px;
+  font-size: 1.3rem;
+}
+
+header h1 a {
+  text-decoration: none;
+  color: #333;
+}
+
+h2{
+  margin: 24px 20px;
+  color: #333;
+  font-size: 20px;
+}
+
+header nav a {
+  margin-left: 20px;
+  text-decoration: none;
+  color: #4cafef;
+  font-size: 0.9rem;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+/* 一覧の詳細 */
+ul {
+  list-style: none;
+  padding-left: 20px;
+  padding-bottom: 20px;
+}
+
+.song-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* ===== フラッシュメッセージ ===== */
+.flash-messages {
+  max-width: 800px;
+  margin: 10px auto;
+  padding: 5px 10px;
+  list-style: none;
+  background: #fffae5;
+  border-left: 3px solid #ffcc00;
+  font-size: 0.9rem;
+}
+
+/* ===== コンテンツブロック（カード風） ===== */
+.card {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 12px 15px;
+  margin: 10px auto;
+  max-width: 800px;
+  margin: 10px auto;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ===== 投稿一覧 ===== */
+.post-list a {
+  display: block;
+  text-decoration: none;
+  color: #333;
+  padding: 6px 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.95rem;
+}
+
+/* ===== フォーム全体 ===== */
+form {
+  max-width: 500px;
+  margin: 12px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ===== 1曲分の入力ブロック ===== */
+.song-block {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.song-block label {
+  font-size: 0.75rem;
+  margin-bottom: 0;
+  line-height: 1.2;
+}
+
+.song-block input[type="text"],
+.song-block input[type="url"] {
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+}
+
+/* ===== ボタン ===== */
+.actions {
+  display: flex;
+  justify-content: flex-start;  
+  align-items: center;    /* 高さを揃える */
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.actions form {
+  margin: 0;
+  width: auto;
+}
+
+.actions > * {
+  flex: 0 0 auto;   /* 勝手に広がらせない */
+}
+
+/* 全ボタン共通 */
+.action-btn {
+  height: 44px;           /* 高さを完全に統一 */
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  box-shadow: none;   /* 影を消す */
+  border: none;       /* 枠を消す */
+  outline: none;      /* フォーカス枠を消す */
+}
+
+.submit-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+/* 色だけ個別指定 */
+.action-btn.edit {
+  line-height: 3;
+  background: #f6c343;
+  color: #fff;
+}
+
+.action-btn.delete {
+  background: #e5533d;
+  color: #fff;
+}
+
+.action-btn.share {
+  background: #6faee8;
+  color: #fff;
+}
+
+.action-btn.submit {
+  background: #6faee8;
+  color: #fff;
+}
+
+
+/* ===== 詳細ページの曲リスト ===== */
+.detail-song {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px;
+  border-bottom: 1px solid #ddd;
+}
+
+.detail-song a {
+  color: #4cafef;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.detail-song a:hover {
+  text-decoration: underline;
+}
+
+/* ===== スマホ対応 ===== */
+@media (max-width: 768px) {
+
+  body {
+    font-size: 14px;
+  }
+
+  header {
+    padding: 8px 12px;
+  }
+
+  header h1 {
+    margin: 10px 0;
+    font-size: 1.1rem;
+  }
+
+  header nav a {
+    margin-left: 20px;
+    font-size: 0.85rem;
+  }
+
+  h2 {
+    margin: 20px 16px;
+    font-size: 18px;
+  }
+
+  /* フォーム横幅を広げる */
+  form {
+    max-width: 100%;
+    padding: 0 12px;
+  }
+
+  /* 曲入力を縦並びに */
+  .song-block {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  /* カード余白を調整 */
+  .card {
+    margin: 8px 12px;
+    padding: 12px;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+  .post-list a {
+    padding: 10px 0;
+  }  
+}
