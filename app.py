@@ -161,4 +161,25 @@ def logout():
 # ----------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
+
+# ----------------------
+# テーブルカラム確認用（デバッグ用・後で削除推奨）
+# ----------------------
+@app.route("/check_users_columns")
+def check_users_columns():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name='users';
+        """)
+        columns = [r[0] for r in cur.fetchall()]
+        cur.close()
+        conn.close()
+        return f"users テーブルのカラム: {columns}"
+    except Exception as e:
+        return f"エラー発生: {e}"
+
     app.run(host="0.0.0.0", port=port, debug=True)
