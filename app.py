@@ -158,6 +158,7 @@ def new():
         flash("投稿が完了しました")
         return redirect(url_for("detail", id=post_id))
 
+    # ↓ここが「if」の縦ラインと同じ位置にあることを確認してください
     return render_template("new.html")
 
 # ----------------------
