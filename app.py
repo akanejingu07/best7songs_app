@@ -27,7 +27,6 @@ def init_db():
         conn = get_connection()
         cur = conn.cursor()
 
-        # users テーブル
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -36,7 +35,6 @@ def init_db():
         );
         """)
 
-        # posts テーブル
         cur.execute("""
         CREATE TABLE IF NOT EXISTS posts (
             id SERIAL PRIMARY KEY,
@@ -46,7 +44,6 @@ def init_db():
         );
         """)
 
-        # songs テーブル
         cur.execute("""
         CREATE TABLE IF NOT EXISTS songs (
             id SERIAL PRIMARY KEY,
@@ -57,34 +54,25 @@ def init_db():
         );
         """)
 
-        # 既存 users テーブルのカラム修正
-        try:
-            cur.execute("ALTER TABLE users RENAME COLUMN nickname TO username;")
-        except Exception:
-            pass
-        try:
-            cur.execute("ALTER TABLE users RENAME COLUMN password TO password_hash;")
-        except Exception:
-            pass
-
         conn.commit()
         cur.close()
         conn.close()
         print("DB初期化完了")
     except RuntimeError:
-        print("DATABASE_URL が設定されていないため、DB初期化はスキップしました")
+        print("DATABASE_URL 未設定のため DB 初期化スキップ")
 
 init_db()
 
 # ----------------------
-# ログイン必須デコレーター
+# ログイン必須デコレーター（修正版）
 # ----------------------
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if "user_id" not in session:
-          flash("ログインしてください")
-          return redirect(url_for("login_route")) # 関数名に合わせる
+            flash("ログインしてください")
+            return redirect(url_for("login_route"))
+        return func(*args, **kwargs)
     return wrapper
 
 # ----------------------
@@ -112,19 +100,26 @@ def detail(id):
     cur = conn.cursor()
 
     cur.execute("SELECT username, user_id FROM posts WHERE id=%s", (id,))
-    post_row = cur.fetchone()
-    if not post_row:
+    post = cur.fetchone()
+    if not post:
         return "投稿が見つかりません", 404
 
-    username = post_row[0]
-    post_user_id = post_row[1]
-
-    cur.execute("SELECT title, artist, url FROM songs WHERE post_id=%s ORDER BY id", (id,))
+    cur.execute(
+        "SELECT title, artist, url FROM songs WHERE post_id=%s ORDER BY id",
+        (id,)
+    )
     songs = [{"title": r[0], "artist": r[1], "url": r[2]} for r in cur.fetchall()]
 
     cur.close()
     conn.close()
-    return render_template("detail.html", username=username, songs=songs, post_id=id, post_user_id=post_user_id)
+
+    return render_template(
+        "detail.html",
+        username=post[0],
+        post_user_id=post[1],
+        post_id=id,
+        songs=songs
+    )
 
 # ----------------------
 # 新規投稿
@@ -133,52 +128,40 @@ def detail(id):
 @login_required
 def new():
     if request.method == "POST":
-        try:
-            username = request.form.get("username")
-            user_id = session.get("user_id") # session["user_id"] より安全
-            
-            if not user_id:
-                flash("セッションが切れました。再度ログインしてください")
-                return redirect(url_for("login_route"))
+        username = request.form.get("username")
+        user_id = session["user_id"]
 
-            songs = []
-            for i in range(1, 8):
-                title = request.form.get(f"song_title_{i}")
-                artist = request.form.get(f"artist_{i}")
-                url = request.form.get(f"url_{i}")
-                if title and artist:
-                    songs.append({"title": title, "artist": artist, "url": url})
+        songs = []
+        for i in range(1, 8):
+            title = request.form.get(f"song_title_{i}")
+            artist = request.form.get(f"artist_{i}")
+            url = request.form.get(f"url_{i}")
+            if title and artist:
+                songs.append((title, artist, url))
 
-            conn = get_connection()
-            cur = conn.cursor()
-            
-            # 投稿を挿入
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO posts (username, user_id) VALUES (%s, %s) RETURNING id",
+            (username, user_id)
+        )
+        post_id = cur.fetchone()[0]
+
+        for song in songs:
             cur.execute(
-                "INSERT INTO posts (username, user_id) VALUES (%s, %s) RETURNING id", 
-                (username, user_id)
+                "INSERT INTO songs (post_id, title, artist, url) VALUES (%s, %s, %s, %s)",
+                (post_id, *song)
             )
-            post_id = cur.fetchone()[0]
 
-            # 曲を挿入
-            for song in songs:
-                cur.execute(
-                    "INSERT INTO songs (post_id, title, artist, url) VALUES (%s, %s, %s, %s)",
-                    (post_id, song["title"], song["artist"], song["url"])
-                )
+        conn.commit()
+        cur.close()
+        conn.close()
 
-            conn.commit()
-            cur.close()
-            conn.close()
-
-            flash("投稿が完了しました")
-            return redirect(url_for("detail", id=post_id))
-
-        except Exception as e:
-            # エラーが起きたら画面に表示する（デバッグ用）
-            flash(f"エラーが発生しました: {e}")
-            return redirect(url_for("new"))
+        flash("投稿が完了しました")
+        return redirect(url_for("detail", id=post_id))
 
     return render_template("new.html")
+
 # ----------------------
 # 編集
 # ----------------------
@@ -189,32 +172,24 @@ def edit(id):
     cur = conn.cursor()
 
     cur.execute("SELECT user_id FROM posts WHERE id=%s", (id,))
-    row = cur.fetchone()
-    if not row:
-        return "投稿が見つかりません", 404
-    if session["user_id"] != row[0]:
+    owner = cur.fetchone()
+    if not owner or owner[0] != session["user_id"]:
         return "権限がありません", 403
 
     if request.method == "POST":
         username = request.form.get("username")
         cur.execute("UPDATE posts SET username=%s WHERE id=%s", (username, id))
 
+        cur.execute("DELETE FROM songs WHERE post_id=%s", (id,))
         for i in range(1, 8):
             title = request.form.get(f"song_title_{i}")
             artist = request.form.get(f"artist_{i}")
             url = request.form.get(f"url_{i}")
             if title and artist:
-                cur.execute("""
-                    UPDATE songs
-                    SET title=%s, artist=%s, url=%s
-                    WHERE post_id=%s
-                    AND id=(
-                        SELECT id FROM songs
-                        WHERE post_id=%s
-                        ORDER BY id
-                        LIMIT 1 OFFSET %s
-                    )
-                """, (title, artist, url, id, id, i-1))
+                cur.execute(
+                    "INSERT INTO songs (post_id, title, artist, url) VALUES (%s, %s, %s, %s)",
+                    (id, title, artist, url)
+                )
 
         conn.commit()
         cur.close()
@@ -225,13 +200,12 @@ def edit(id):
 
     cur.execute("SELECT username FROM posts WHERE id=%s", (id,))
     username = cur.fetchone()[0]
-
-    cur.execute("SELECT title, artist, url FROM songs WHERE post_id=%s ORDER BY id", (id,))
+    cur.execute("SELECT title, artist, url FROM songs WHERE post_id=%s", (id,))
     songs = [{"title": r[0], "artist": r[1], "url": r[2]} for r in cur.fetchall()]
 
     cur.close()
     conn.close()
-    return render_template("edit.html", post_id=id, username=username, songs=songs)
+    return render_template("edit.html", username=username, songs=songs, post_id=id)
 
 # ----------------------
 # 削除
@@ -243,10 +217,8 @@ def delete(id):
     cur = conn.cursor()
 
     cur.execute("SELECT user_id FROM posts WHERE id=%s", (id,))
-    row = cur.fetchone()
-    if not row:
-        return "投稿が見つかりません", 404
-    if session["user_id"] != row[0]:
+    owner = cur.fetchone()
+    if not owner or owner[0] != session["user_id"]:
         return "権限がありません", 403
 
     cur.execute("DELETE FROM posts WHERE id=%s", (id,))
@@ -265,16 +237,18 @@ def register_route():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        password_hash = generate_password_hash(password)
 
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("INSERT INTO users (username, password_hash) VALUES (%s, %s)", (username, password_hash))
+        cur.execute(
+            "INSERT INTO users (username, password_hash) VALUES (%s, %s)",
+            (username, generate_password_hash(password))
+        )
         conn.commit()
         cur.close()
         conn.close()
 
-        flash("登録が完了しました")
+        flash("登録完了しました")
         return redirect(url_for("login_route"))
 
     return render_template("register.html")
@@ -291,17 +265,16 @@ def login_route():
         conn = get_connection()
         cur = conn.cursor()
         cur.execute("SELECT id, password_hash FROM users WHERE username=%s", (username,))
-        row = cur.fetchone()
+        user = cur.fetchone()
         cur.close()
         conn.close()
 
-        if row and check_password_hash(row[1], password):
-            session["user_id"] = row[0]
+        if user and check_password_hash(user[1], password):
+            session["user_id"] = user[0]
             session["username"] = username
             flash("ログインしました")
             return redirect(url_for("index"))
-        else:
-            flash("ユーザー名またはパスワードが間違っています")
+        flash("ログイン失敗")
 
     return render_template("login.html")
 
@@ -316,8 +289,8 @@ def logout_route():
     return redirect(url_for("index"))
 
 # ----------------------
-# Render対応のポート設定
+# 起動（Render対応）
 # ----------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port)
