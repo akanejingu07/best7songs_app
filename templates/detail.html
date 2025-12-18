@@ -6,7 +6,15 @@
 
   <ul class="song-list">
     {% for song in songs %}
-      <li>{{ song.title }} - {{ song.artist }}</li>
+  <div class="song">
+    <p>{{ song.title }} / {{ song.artist }}</p>
+
+    {% if song.url %}
+      <a href="{{ song.url }}" target="_blank">
+        🔗 音楽リンク
+      </a>
+    {% endif %}
+  </div>
     {% endfor %}
   </ul>
 
